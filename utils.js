@@ -164,7 +164,7 @@ exports.DES = DES
  * @returns {number} 加密时左侧填充的0的个数
  */
 exports.encodeFile = function (src, dest, encoding = 'utf-8', key='0001001100110100010101110111100110011011101111001101111111110001') {
-    const startTime = new Date().getMilliseconds()// 开始时间
+    const startTime = new Date().getTime()// 开始时间
     const data = fs.readFileSync(src, encoding)
 
     // 将文本文件转换为二进制字符串数组, 类似['01100011', '01101111', ...]
@@ -182,7 +182,7 @@ exports.encodeFile = function (src, dest, encoding = 'utf-8', key='0001001100110
     // console.log('密文', C)
     // 写入文件
     fs.writeFileSync(dest, C, encoding)
-    const endTime = new Date().getMilliseconds()// 结束时间
+    const endTime = new Date().getTime()// 结束时间
     console.log(`已将${src}加密到${dest}! 耗时${endTime-startTime}ms!`)
 
     return zerosPre.length
@@ -197,22 +197,20 @@ exports.encodeFile = function (src, dest, encoding = 'utf-8', key='0001001100110
  * @param {string} key 解密的密匙
  * @param {string} encoding 编码格式
  */
-exports.decodeFile = function (src, dest, leftTrim0Length, encoding = 'utf-8', key='0001001100110100010101110111100110011011101111001101111111110001') {
-    const startTime = new Date().getMilliseconds()// 开始时间
+exports.decodeFile = function (leftTrim0Length, src, dest, encoding = 'utf-8', key='0001001100110100010101110111100110011011101111001101111111110001') {
+    const startTime = new Date().getTime()// 开始时间
     const data = fs.readFileSync(src, encoding)
-    // console.log('data:',data)
     // // 解密后的明文
     const M1 = data.match(/[01]{64}/g).map(str => DES(key, str, DECODE)).reduce((acc, arr) => acc.concat(arr.join('')), '')
 
     // 将解密后的明文还原为原来的文本
     const subArrays = M1.match(/[01]{8}/g)// 8位一组分割
-    // console.log(subArrays, leftTrim0Length)
     subArrays.splice(0, leftTrim0Length / 8)// 去掉最左侧的填充的0
     // 原来的文本
     const text = Buffer.from(subArrays.map(str => parseInt(str, 2))).toString(encoding)
     // console.log(text)
     // 写入文件
     fs.writeFileSync(dest, text, encoding)
-    const endTime = new Date().getMilliseconds()// 结束时间
+    const endTime = new Date().getTime()// 结束时间
     console.log(`已将${src}解密到${dest}! 耗时${endTime-startTime}ms!`)
 }
