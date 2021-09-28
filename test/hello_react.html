@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Hello React!</title>
+    <script src="https://cdn.staticfile.org/react/16.4.0/umd/react.development.js"></script>
+    <script src="https://cdn.staticfile.org/react-dom/16.4.0/umd/react-dom.development.js"></script>
+    <script src="https://cdn.staticfile.org/babel-standalone/6.26.0/babel.min.js"></script>
+</head>
+
+<body>
+    <div id="test"></div>
+    
+    <script type="text/babel">
+        function mapAttributes(attributes){
+            // convert ['key1="value1"', 'key2="value2"', ...] to {key1: value1, key2: value2, ...}
+            const mappedAttributes = {};
+            attributes.map(attribute=>{
+                console.log(attribute)
+            })
+            return mappedAttributes;
+        }
+
+        function parseText(text){
+            const fullTagRegexp = /<studio:([a-zA-Z\-]*)\s*.*>.*<\/studio:\1>/g;
+            const fullTags = text.match(fullTagRegexp) || [];
+            const fullTagTypeRegexp = /(?<=<studio:)([a-zA-Z\-]*)(?=\s*[^<>]*>.*<\/studio:\1>)/;
+            const tagAttributesRegexp = /(?<=<studio:([a-zA-Z\-]*)\s*)[a-zA-Z\-]*=[^<>]*(?=>.*<\/studio:\1>)/g;
+            const childrenRegexp = /(?<=<studio:([a-zA-Z\-]*)\s*[^<>]*?>).*(?=<\/studio:\1>)/g;
+            for(let i=0; i<fullTags.length; i++){
+                const type = fullTags[i].match(fullTagTypeRegexp);
+                const attributes = mapAttributes(fullTags[i].match(tagAttributesRegexp)||[]);
+                const children = fullTags[i].match(childrenRegexp)?.[0] || '';
+            }
+
+            const emptyTagRegexp = /<studio:([a-zA-Z\-]*)\s*[^<>]*\/>/g;
+            const emptyTags = text.match(emptyTagRegexp) || [];
+
+            // const 
+
+            return [
+                {type:'span', props:{}, children: [{type: 'span', props: {}, children:'This is a text'}]},
+                {type:'a', props: {href:'https://www.example.com'}, children:'This is a tag'}
+            ]
+        }
+
+        function mapObjToCompoment(type, props, children){
+            if(Array.isArray(children)){
+                return React.createElement(type, props, children.map(child=>{
+                    return mapObjToCompoment(child.type, child.props, child.children)
+                }))
+            }
+            return React.createElement(type, props, children)
+        }
+
+        function Component(){
+            const text = '<studio:hyperlink target="https://www.example.com">This is Test.</studio:hyperlink>Oh, ok.<studio:text href="https://www.example.com"><studio:indent>This is indent.</studio:indent>This is text.</studio:text>This is a string.'
+
+            const objects = parseText(text);
+            console.log(objects);
+            return <div>{objects.map(obj=>mapObjToCompoment(obj.type, obj.props, obj.children))}</div>
+        }
+        ReactDOM.render(<Component/>, document.getElementById('test'))
+    </script>
+</body>
+</html>
