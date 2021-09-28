@@ -287,7 +287,6 @@ function decodeFiles(fileObj, key){
 /**
  * 传入一个文件路径或文件夹路径（当前目录中的路径），当前目录中会产生一个pathname.des.json文件
  * @param {string} pathname 被加密的文件路径或文件夹路径
- * @param {string} jsonPath 加密到哪个.json文件中
  * @param {string} key 密匙, 64位01字符串
  */
 function desEncode(pathname, key='0001001100110100010101110111100110011011101111001101111111110001'){

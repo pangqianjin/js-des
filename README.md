@@ -1,37 +1,29 @@
 # js-des
 
 #### 介绍
-commonJS实现DES加密算法，可以加密64位的二进制01字符串（main.js中有），也可以加密文件（index.js中有）
-
-#### 软件架构
-软件架构说明
-
-
-#### 安装教程
-
-1.  xxxx
-2.  xxxx
-3.  xxxx
+commonJS实现DES加密算法，可以加密64位的二进制01字符串、文本文件、jpg|png|jpeg图像文件、文件夹等（递归加密）
 
 #### 使用说明
+utils.js中向外暴露了三个方法:
+```js
+DES(M:string, key?:string)
+desEncode(pathname:string, key?:string)
+desDecode(pathname:string, key?:string)
+```
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+示例：
 
-#### 参与贡献
+```javascript
+// 加密
+// 结果为: 1000010111101000000100110101010000001111000010101011010000000101
+DES('0001001100110100010101110111100110011011101111001101111111110001',
+     '0000000100100011010001010110011110001001101010111100110111101111', ENCODE)
 
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
+// 解密
+DES('0001001100110100010101110111100110011011101111001101111111110001', 
+     '1000010111101000000100110101010000001111000010101011010000000101', DECODE)
 
+desEncode('./test')
+desDecode('./test.des.json')
+```
 
-#### 特技
-
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)

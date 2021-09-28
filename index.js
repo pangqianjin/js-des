@@ -1,4 +1,5 @@
 const { desEncode, DES, desDecode } = require('./utils')
+const {ENCODE, DECODE} = require('./workingMode')
 
 // 加密
 // 结果为: 1000010111101000000100110101010000001111000010101011010000000101
