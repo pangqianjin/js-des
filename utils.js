@@ -227,7 +227,7 @@ function encodeFiles(pathname, fileObj, key) {// fileObj: {name, children}
             for (const name of files) {
                 const subFileObj = {}// 防止被回收
                 // 递归
-                encodeFiles(`${pathname}/${name}`, subFileObj)
+                encodeFiles(`${pathname}/${name}`, subFileObj, key)
                 fileObj.children.push(subFileObj)
             }
         } else if (stats.isFile()) {
@@ -277,7 +277,7 @@ function decodeFiles(fileObj, key){
         }
         // 递归
         fileObj.children.forEach(child=>{
-            decodeFiles(child)
+            decodeFiles(child, key)
         })
     }
 }
