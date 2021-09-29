@@ -150,18 +150,17 @@ exports.DES = DES
 /**
  * 加密和解密一个文件到另一个文件，如图片和文本文件
  * @param {string} src 被加密的文件名
- * @param {string} encoding 编码格式 (文本文件可以用utf-8, 图片文件用base64)
  * @param {string} key 加密的密匙
  * @returns {array} [string, number] 密文和加密时左侧填充的0的个数
  */
-function encodeFile(src, encoding = 'utf-8', key = '0001001100110100010101110111100110011011101111001101111111110001') {
+function encodeFile(src, key = '0001001100110100010101110111100110011011101111001101111111110001') {
     try {
         const startTime = new Date().getTime()// 开始时间
-        const data = readFileSync(src, encoding)
+        const data = readFileSync(src, 'binary')
 
         // 将文本文件转换为二进制字符串数组, 类似['01100011', '01101111', ...]
         const binaryStr = []
-        Buffer.from(data, encoding).forEach(b => binaryStr.push(b.toString(2)))
+        Buffer.from(data, 'binary').forEach(b => binaryStr.push(b.toString(2)))
         const binaryStrArray = binaryStr.map(b => '0'.repeat(8 - b.length) + b)
 
         // 前面需要补充多少个0
@@ -187,11 +186,10 @@ function encodeFile(src, encoding = 'utf-8', key = '0001001100110100010101110111
  * 将密文解密为原文
  * @param {string} str 被解密的密文
  * @param {number} leftTrim0Length 左侧去掉多少个填充的0
- * @param {string} encoding 编码格式
  * @param {string} key 解密的密匙
  * @returns {string} text 解密后的明文还原到原来的文本
  */
-function decodeText(str, leftTrim0Length, encoding = 'utf-8', key = '0001001100110100010101110111100110011011101111001101111111110001') {
+function decodeText(str, leftTrim0Length, key = '0001001100110100010101110111100110011011101111001101111111110001') {
     try {
         // // 解密后的明文
         const M1 = str.match(/[01]{64}/g).map(str => DES(key, str, DECODE)).reduce((acc, arr) => acc.concat(arr.join('')), '')
@@ -200,8 +198,8 @@ function decodeText(str, leftTrim0Length, encoding = 'utf-8', key = '00010011001
         const subArrays = M1.match(/[01]{8}/g)// 8位一组分割
         subArrays.splice(0, leftTrim0Length / 8)// 去掉最左侧的填充的0
         // 原来的文本
-        const text = Buffer.from(subArrays.map(str => parseInt(str, 2))).toString(encoding)
-        // console.log(text)
+        const text = Buffer.from(subArrays.map(str => parseInt(str, 2))).toString('binary')
+        // console.log(text) 
 
         return text
     } catch (err) {
@@ -212,7 +210,7 @@ function decodeText(str, leftTrim0Length, encoding = 'utf-8', key = '00010011001
 
 
 /**
- * 返回一棵树，{name:string, children: [{name:string, children:array, C:string, encoding:string, left:number}, ...], C:string, encoding:string, left:number}
+ * 返回一棵树，{name:string, children: [{name:string, children:array, C:string, left:number}, ...], C:string, left:number}
  * @param {string} pathname 要遍历的路径
  * @param {Object} fileObj {name:string, children:array}
  * @returns {Object} 当pathname是一个文件名时，返回fileObj
@@ -233,12 +231,10 @@ function encodeFiles(pathname, fileObj, key) {// fileObj: {name, children}
                 fileObj.children.push(subFileObj)
             }
         } else if (stats.isFile()) {
-            // 是文件类型, 目前支持图片（png|jpg|jpeg）格式的图片和普通文本文件(utf-8)
-            const encoding = (/(png|jpg|jpeg)$/g).test(pathname)? 'base64': 'utf-8'
-            const [C, left] = encodeFile(pathname, encoding, key)
+            // 是文件类型
+            const [C, left] = encodeFile(pathname, key)
             fileObj.C = C
             fileObj.left = left
-            fileObj.encoding = encoding
 
             return fileObj
         }
@@ -252,18 +248,22 @@ function encodeFiles(pathname, fileObj, key) {// fileObj: {name, children}
 
 /**
  * 传入一个JSON解析后的对象，递归还原文件和文件夹
- * @param {Object} fileObj 文件描述对象，是一棵树, {name:string, children: [{name:string, children:array, C:string, encoding:string, left:number}, ...], C:string, encoding:string, left:number}
+ * @param {Object} fileObj 文件描述对象，是一棵树, {name:string, children: [{name:string, children:array, C:string, left:number}, ...], C:string, left:number}
  * @returns 
  */
 function decodeFiles(fileObj, key){
     if(fileObj.children.length===0){
         // 文件类型
-        const {name, encoding, left, C} = fileObj
-        const text = decodeText(C, left, encoding, key)
+        const startTime = new Date().getTime()// 开始时间
+
+        const {name, left, C} = fileObj
+        const text = decodeText(C, left, key)
         try{
             if(!existsSync(name)){
-                writeFileSync(name, text, encoding)
-                console.log(`已解密文件${name}!`)
+                writeFileSync(name, text, 'binary')
+
+                const endTime = new Date().getTime()// 结束时间
+                console.log(`已将${name}解密! 耗时${endTime - startTime}ms!`)
             }    
         }catch(err){
             console.log(err)
@@ -274,7 +274,6 @@ function decodeFiles(fileObj, key){
         const {name} = fileObj
         if(!existsSync(name)){
             mkdirSync(name)
-            console.log(`已解密文件夹${name}!`)
         }
         // 递归
         fileObj.children.forEach(child=>{

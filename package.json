@@ -1,0 +1,18 @@
+{
+  "name": "js-des",
+  "version": "1.0.0",
+  "description": "使用NodeJS实现DES加密算法，可以加密文件和文件夹",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "start": "node --max-old-space-size=4096 ./index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitee.com/pangqianjin/js-des.git"
+  },
+  "author": "pangqianjin",
+  "license": "MIT"
+}
