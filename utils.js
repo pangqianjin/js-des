@@ -156,6 +156,7 @@ exports.DES = DES
 function encodeFile(src, key = '0001001100110100010101110111100110011011101111001101111111110001') {
     try {
         const startTime = new Date().getTime()// 开始时间
+        process.stdout.write(`正在加密${src}...`)
         const data = readFileSync(src, 'binary')
 
         // 将文本文件转换为二进制字符串数组, 类似['01100011', '01101111', ...]
@@ -172,7 +173,7 @@ function encodeFile(src, key = '000100110011010001010111011110011001101110111100
         const C = M.match(/[01]{64}/g).map(str => DES(key, str, ENCODE)).reduce((acc, arr) => acc.concat(arr.join('')), '')
         // console.log('密文', C)
         const endTime = new Date().getTime()// 结束时间
-        console.log(`已将${src}加密! 耗时${endTime - startTime}ms!`)
+        console.log(`耗时${endTime - startTime}ms!`)
 
         return [C, zerosPre.length]
     } catch (err) {
@@ -255,6 +256,7 @@ function decodeFiles(fileObj, key){
     if(fileObj.children.length===0){
         // 文件类型
         const startTime = new Date().getTime()// 开始时间
+        process.stdout.write(`正在解密${fileObj.name}...`)
 
         const {name, left, C} = fileObj
         const text = decodeText(C, left, key)
@@ -263,7 +265,7 @@ function decodeFiles(fileObj, key){
                 writeFileSync(name, text, 'binary')
 
                 const endTime = new Date().getTime()// 结束时间
-                console.log(`已将${name}解密! 耗时${endTime - startTime}ms!`)
+                console.log(`耗时${endTime - startTime}ms!`)
             }    
         }catch(err){
             console.log(err)
