@@ -191,22 +191,17 @@ function encodeFile(src, key = '000100110011010001010111011110011001101110111100
  * @returns {string} text 解密后的明文还原到原来的文本
  */
 function decodeText(str, leftTrim0Length, key = '0001001100110100010101110111100110011011101111001101111111110001') {
-    try {
-        // // 解密后的明文
-        const M1 = str.match(/[01]{64}/g).map(str => DES(key, str, DECODE)).reduce((acc, arr) => acc.concat(arr.join('')), '')
+    // // 解密后的明文
+    const M1 = str.match(/[01]{64}/g).map(str => DES(key, str, DECODE)).reduce((acc, arr) => acc.concat(arr.join('')), '')
 
-        // 将解密后的明文还原为原来的文本
-        const subArrays = M1.match(/[01]{8}/g)// 8位一组分割
-        subArrays.splice(0, leftTrim0Length / 8)// 去掉最左侧的填充的0
-        // 原来的文本
-        const text = Buffer.from(subArrays.map(str => parseInt(str, 2))).toString('binary')
-        // console.log(text) 
+    // 将解密后的明文还原为原来的文本
+    const subArrays = M1.match(/[01]{8}/g)// 8位一组分割
+    subArrays.splice(0, leftTrim0Length / 8)// 去掉最左侧的填充的0
+    // 原来的文本
+    const text = Buffer.from(subArrays.map(str => parseInt(str, 2))).toString('binary')
+    // console.log(text) 
 
-        return text
-    } catch (err) {
-        console.log(err)
-        return
-    }
+    return text
 }
 
 
@@ -278,9 +273,7 @@ function decodeFiles(fileObj, key){
             mkdirSync(name)
         }
         // 递归
-        fileObj.children.forEach(child=>{
-            decodeFiles(child, key)
-        })
+        fileObj.children.forEach(child=>decodeFiles(child, key))
     }
 }
 
