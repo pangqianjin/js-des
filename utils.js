@@ -1,5 +1,6 @@
 const sBox = require('./tables/sBox')
-const { readdirSync, statSync, readFileSync, writeFileSync, mkdirSync, existsSync } = require('fs')
+const stream = require('stream')
+const { createWriteStream, readdirSync, statSync, readFileSync, mkdirSync, existsSync } = require('fs')
 const { ENCODE, DECODE } = require('./workingMode')
 const ipReplacementTable = require('./tables/ipReplacementTable')
 const keyReplacementTable = require('./tables/keyReplacementTable')
@@ -184,11 +185,11 @@ function encodeFile(src, key = '000100110011010001010111011110011001101110111100
 
 
 /**
- * 将密文解密为原文
+ * 将密文解密为一个buffer
  * @param {string} str 被解密的密文
  * @param {number} leftTrim0Length 左侧去掉多少个填充的0
  * @param {string} key 解密的密匙
- * @returns {string} text 解密后的明文还原到原来的文本
+ * @returns {string} buffer 解密后的明文还原到buffer
  */
 function decodeText(str, leftTrim0Length, key = '0001001100110100010101110111100110011011101111001101111111110001') {
     // // 解密后的明文
@@ -198,10 +199,27 @@ function decodeText(str, leftTrim0Length, key = '0001001100110100010101110111100
     const subArrays = M1.match(/[01]{8}/g)// 8位一组分割
     subArrays.splice(0, leftTrim0Length / 8)// 去掉最左侧的填充的0
     // 原来的文本
-    const text = Buffer.from(subArrays.map(str => parseInt(str, 2))).toString('binary')
-    // console.log(text) 
+    const buffer = Buffer.from(subArrays.map(str => parseInt(str, 2)))
 
-    return text
+    return buffer
+}
+
+
+/**
+ * 将buffer写入大文件filename
+ * @param {string} filename 被写入的文件
+ * @param {Buffer} buffer Buffer
+ */
+function writeBigFile(filename, buffer){
+    const reader = new stream.PassThrough().end(buffer)
+    const writer = createWriteStream(filename, {
+        flags: 'w+',
+        encoding: 'binary',
+        start: 0,
+
+    })
+
+    reader.pipe(writer)
 }
 
 
@@ -250,15 +268,14 @@ function encodeFiles(pathname, fileObj, key) {// fileObj: {name, children}
 function decodeFiles(fileObj, key){
     if(fileObj.children.length===0){
         // 文件类型
-        const startTime = new Date().getTime()// 开始时间
-        process.stdout.write(`正在解密${fileObj.name}...`)
-
         const {name, left, C} = fileObj
-        const text = decodeText(C, left, key)
+        const startTime = new Date().getTime()// 开始时间
+        process.stdout.write(`正在解密${name}...`)
+
+        const buffer = decodeText(C, left, key)
         try{
             if(!existsSync(name)){
-                writeFileSync(name, text, 'binary')
-
+                writeBigFile(name, buffer)
                 const endTime = new Date().getTime()// 结束时间
                 console.log(`耗时${endTime - startTime}ms!`)
             }    
@@ -286,7 +303,8 @@ function decodeFiles(fileObj, key){
 function desEncode(pathname, key='0001001100110100010101110111100110011011101111001101111111110001'){
     const fileObj = {}// 防止被回收
     encodeFiles(pathname, fileObj, key)
-    writeFileSync(`${pathname}.des.json`, JSON.stringify(fileObj))
+    writeBigFile(`${pathname}.des.json`, Buffer.from(JSON.stringify(fileObj)))
+    // writeFileSync(`${pathname}.des.json`, JSON.stringify(fileObj))
 }
 exports.desEncode = desEncode
 
